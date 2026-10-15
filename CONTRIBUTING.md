@@ -125,9 +125,21 @@ design issue first, discuss, then implement. No surprise 2,000-line PRs.
 
 ## 7. Review and merge
 
+Every PR gets two automated passes before a human looks at it:
+
+- **CodeRabbit** (the `coderabbitai[bot]` review, configured in
+  `.coderabbit.yaml`) posts a review on each PR: bugs, standards from this
+  guide, and project-specific checks - simulation-only boundary, frozen
+  interface changes without a README update, unmeasured numbers, weak
+  baselines. Treat its comments as a first review; fix what is right, reply
+  on what is not.
+- **CI** (`.github/workflows/ci.yml`) runs ruff lint and format checks,
+  a bandit security scan, and pytest. It stays green on docs-only changes.
+
+Then the human pass:
+
 - One approval from a core-team member merges. The project lead reviews
   interface changes; sub-team owners review their own area.
-- CI must be green (lint, format, tests).
 - Reviews aim for the next push, not the same hour. Core team: review
   others' PRs promptly; a PR stalled three days gets escalated in the team
   channel.

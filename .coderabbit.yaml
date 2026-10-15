@@ -1,0 +1,141 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: 'en-US'
+tone_instructions: 'give formal and direct reviews with no humour and any other distracting text, only the necessary'
+chat:
+  auto_reply: true
+  art: false
+reviews:
+  profile: 'chill'
+  request_changes_workflow: true
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+  poem: false
+  high_level_summary: true
+  suggested_labels: true
+  auto_apply_labels: true
+  labeling_instructions:
+    - label: '⏱️ <10 Min Review'
+      instructions: Apply for PRs with <200 lines changed
+    - label: '⏱️ 10-30 Min Review'
+      instructions: Apply for PRs with 200-1000 lines changed
+    - label: '⏱️ 30-60 Min Review'
+      instructions: Apply for PRs with 1000-2000 lines changed
+    - label: '⏱️ 60+ Min Review'
+      instructions: Apply for PRs with >2000 lines changed
+
+  path_instructions:
+    - path: '**'
+      instructions: |
+        ## General Project Standards
+        ### Safety boundary (README section 12)
+        - This is a counter-UAS RESEARCH project. FLAG any code that engages
+          real aircraft, performs jamming or spoofing, or sends actuator
+          commands to real hardware outside an explicit simulation config.
+          Interception logic stays simulation-only.
+        ### Honesty
+        - FLAG any metric or number presented as measured unless it comes
+          from a committed config run recorded in the experiment log.
+          Unmeasured values must read TBD, never an estimate.
+        ### Python
+        - Type hints on all public functions; NumPy-style docstrings
+          (Parameters, Returns, Raises); comments on non-obvious lines only.
+        - Code must be `ruff check` and `ruff format` clean.
+        ### Frozen interfaces
+        - Detection, TrackState, Prediction and GimbalCommand dataclasses
+          (README section 4) are the contract between sub-teams. FLAG any
+          change to them that does not update README section 4 in the same
+          PR.
+        ### Units
+        - Degrees, degrees per second, nanoseconds. FLAG mixing pixel space
+          and angle space inside one field.
+
+    - path: 'src/astra_chronus/**/*.py'
+      instructions: |
+        ## General Python Code Review
+        - Flag missing type hints on new function signatures and class
+          attributes.
+        - Suggest frozen dataclasses for data structures.
+        - Flag broad `except Exception:` blocks; suggest specific exceptions.
+        - Flag mutable module-level state and hidden globals.
+        - Flag blocking I/O inside async functions.
+        - Flag hardcoded hyperparameters, file paths, or thresholds outside
+          `configs/`.
+
+    - path: 'src/astra_chronus/tracking/**'
+      instructions: |
+        ## Tracking and State Estimation
+        - World-frame rule: az/el consumed downstream must include gimbal
+          encoder compensation. FLAG any track state computed from pixel
+          coordinates alone while the camera sits on a moving gimbal
+          (README section 3.2) - the model would learn the gimbal's motion
+          instead of the drone's.
+        - Calibration constants must come from config, not hardcoded values.
+
+    - path: 'src/astra_chronus/prediction/**'
+      instructions: |
+        ## Prediction (research core)
+        - Noise-aware rule: FLAG any training path that fits on clean
+          ground-truth tracks without detector-noise injection or
+          detector-passed tracks (README section 3.3).
+        - The IMM-EKF is the baseline to beat. FLAG weakened or skipped
+          baselines, and any comparison that pools smooth and evasive
+          trajectories instead of reporting them separately.
+        - Residual models should predict the correction to the baseline
+          prediction, not a full trajectory, unless the PR explains why.
+
+    - path: 'src/astra_chronus/control/**'
+      instructions: |
+        ## Control
+        - Latency compensation: FLAG gimbal setpoints computed from the
+          target's current position without adding the measured end-to-end
+          latency (README section 3.4).
+        - Real-hardware command paths must be gated by an explicit
+          sim/real config flag.
+
+    - path: 'src/astra_chronus/detection/**'
+      instructions: |
+        ## Detection
+        - FLAG inference code assuming a fixed input resolution when
+          cascade or tiled paths exist elsewhere in the module.
+        - Confidence thresholds and NMS settings belong in `configs/`.
+
+    - path: 'src/astra_chronus/simulation/**'
+      instructions: |
+        ## Simulation
+        - All intercept and engagement logic lives here. FLAG any import of
+          this package from control, tracking, detection or prediction -
+          that would blur the simulation-only boundary.
+
+    - path: 'tests/**'
+      instructions: |
+        ## Testing
+        - New behaviour needs tests in the same PR (CONTRIBUTING section 3).
+        - FLAG tests without assertions, and tests depending on wall-clock
+          timing or network access.
+
+    - path: 'configs/**'
+      instructions: |
+        ## Experiment Configs
+        - Every config must carry a seed and a split reference. FLAG
+          configs missing either: results from them cannot be reproduced or
+          compared.
+
+    - path: 'scripts/**'
+      instructions: |
+        ## Scripts
+        - Training and evaluation entry points must read hyperparameters
+          from `configs/`. FLAG inline hyperparameter values.
+
+    - path: 'docs/**'
+      instructions: |
+        ## Documentation
+        - FLAG unmeasured numbers presented as results, and unverified
+          dataset licences presented as confirmed.
+
+    - path: '{README.md,CONTRIBUTING.md}'
+      instructions: |
+        ## Project Docs
+        - README section 4 is the interface contract; interface changes must
+          update it in the same PR.
+        - FLAG claims of completed work that no merged PR supports.
