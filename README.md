@@ -356,22 +356,22 @@ month 6. Late writing is how student papers end up thin.
 
 ## 11. Team structure
 
-Split into sub-teams. The four core members below raise the project's PRs;
-assignments are **provisional until the first team meeting**. External
-contributors are welcome - see [CONTRIBUTING.md](CONTRIBUTING.md).
+Split into sub-teams. Club members raise the project's PRs; assignments are
+**provisional until the first team meeting**. External contributors are
+welcome - see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Sub-team | Scope | Owner |
 |---|---|---|
 | Project lead | Interfaces between stages, evaluation honesty | Reyyi Shreyas |
-| Perception | Detection, small-object work, cascade | Mayank Prakash |
-| Tracking and prediction | ByteTrack, IMM, GRU/Transformer | Sonali N Gowda |
-| Simulation and data | PX4/Gazebo, dataset ingestion, licenses | Anubhav |
+| Perception | Detection, small-object work, cascade | open - first meeting |
+| Tracking and prediction | ByteTrack, IMM, GRU/Transformer | open - first meeting |
+| Simulation and data | PX4/Gazebo, dataset ingestion, licenses | open - first meeting |
 | Control and hardware | Gimbal, latency, Jetson deployment | open - first meeting |
 | Paper and documentation | Writing, experiment log, submissions | open - first meeting (separate from project lead) |
 
 - **President / project lead:** Reyyi Shreyas - keeps interfaces between
   stages clean and the evaluation honest.
-- **Faculty guide:** Dr. Deepak DJ (formal sign-off pending).
+- **Faculty guide:** TBD (formal sign-off pending).
 - Work claimed, credited, and reviewed per
   [CONTRIBUTING.md](CONTRIBUTING.md): branch naming, commit style, the
   contributions table, and the AI-disclosure rule for PRs.

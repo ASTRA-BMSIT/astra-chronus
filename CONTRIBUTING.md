@@ -15,22 +15,22 @@ however good the code is.
 
 ## 1. Core team
 
-The four club members below raise the project's PRs. Workstreams are
-**provisional until the first team meeting** - they are the starting
-assignment, not a permanent rule.
+Club members raise the project's PRs; external contributors are welcome
+under the same rules. Workstreams below are placeholders until the first
+team meeting - starting assignments, not permanent rules. Members get
+listed here with their name and workstream as they claim their first task.
 
 | Member | Role | Workstream | First task |
 |---|---|---|---|
 | Reyyi Shreyas | President, project lead | Evaluation harness, interface contracts | Land the harness skeleton with fixed splits |
-| Mayank Prakash | Perception | Detection: fine-tuning, small-object tricks, cascade | Set up detector training on a public dataset |
-| Sonali N Gowda | Tracking and prediction | ByteTrack/OC-SORT, IMM baseline, predictor models | Implement the IMM-EKF baseline |
-| Anubhav | Simulation and data | PX4/Gazebo or AirSim, dataset ingestion, licences | Fill `docs/DATA_LICENSES.md` with verified entries |
+| _TBD - first meeting_ | Perception | Detection: fine-tuning, small-object tricks, cascade | Set up detector training on a public dataset |
+| _TBD - first meeting_ | Tracking and prediction | ByteTrack/OC-SORT, IMM baseline, predictor models | Implement the IMM-EKF baseline |
+| _TBD - first meeting_ | Simulation and data | PX4/Gazebo or AirSim, dataset ingestion, licences | Fill `docs/DATA_LICENSES.md` with verified entries |
+| _TBD - first meeting_ | Control and hardware | Gimbal, latency, Jetson deployment | Measure the end-to-end latency budget |
+| _TBD - first meeting_ | Paper and documentation | Writing, experiment log, submissions | Set up the shared experiment log |
 
-Faculty guide: **Dr. Deepak DJ** (sign-off and authorship role per the
-written authorship rules).
-
-Open for assignment at the first team meeting: control and hardware sub-team,
-and the paper lead (separate from the project lead).
+Faculty guide: **TBD** (sign-off and authorship role per the written
+authorship rules).
 
 ---
 
@@ -43,7 +43,7 @@ and the paper lead (separate from the project lead).
    External: you get a "claimed by community" note; first useful PR wins the
    task.
 3. Open a **branch** named `<github-username>/<short-description>`, for
-   example `mayank/detector-training-script`.
+   example `your-name/detector-training-script`.
 4. Open a **PR against `main`** that closes the issue. The PR description
    states what changed, why, and how it was tested.
 5. **AI disclosure:** every PR states whether AI tools were used to write

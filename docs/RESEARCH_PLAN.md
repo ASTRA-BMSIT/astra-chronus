@@ -2,7 +2,7 @@
 
 **Paper and academic submission plan.** Companion to the team
 [README](../README.md). Audience: the Astra club research team, the BMSIT
-department, and the faculty guide (Dr. Deepak DJ).
+department, and the faculty guide (TBD).
 
 This document is planning material. It contains no results - every number in
 it is a target or a definition, never a measurement. Results enter the
@@ -192,9 +192,9 @@ next one.
 
 ## 8. Academic integration (college and guide)
 
-- **Faculty guide:** Dr. Deepak DJ - sign-off on the project, likely
-  co-author; agree the guide's authorship role explicitly in the written
-  authorship rules.
+- **Faculty guide:** TBD - sign-off on the project, likely
+  co-author; agree the guide's identity and authorship role explicitly in
+  the written authorship rules.
 - **Authorship rules in writing before month 2:** contribution thresholds,
   author order logic, project lead (Reyyi Shreyas) versus paper lead
   (assigned separately). The most common source of club conflict.
