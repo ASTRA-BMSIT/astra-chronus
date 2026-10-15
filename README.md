@@ -1,12 +1,26 @@
 # Astra Chronus
 
 **Counter-UAS detect, track, predict, and lock pipeline.** Research project of the
-Astra defence-tech club, BMSIT.
+Astra defence-tech club, BMSIT: from a single camera feed, find one drone, track
+it, predict where it will be up to 2 seconds ahead, and keep a pan-tilt camera
+locked on it.
 
-This README is the V1 plan and architecture contract for the team. It defines the
-scope, the pipeline, module interfaces, loss and reward design, data, metrics,
-timeline, roles, and the safety rules. Work from this document; when a decision
-changes, update this file in the same pull request.
+This repo is the **V1 plan and architecture contract** the team builds from. When
+a decision changes, update this file in the same pull request.
+
+**What you'll find here:**
+
+- **The V1 plan and pipeline** - scope, the six pipeline stages, loss and reward
+  design, data plan, metrics, timeline, and roles (sections 1-16 below).
+- **Frozen interfaces** - the four dataclasses (`Detection`, `TrackState`,
+  `Prediction`, `GimbalCommand`) every sub-team codes against (section 4).
+- **Research plan** - literature, venues, authorship, and the iDEX/DRDO route
+  ([docs/RESEARCH_PLAN.md](docs/RESEARCH_PLAN.md), plus its PDF).
+- **Honesty records** - the shared [experiment log](docs/EXPERIMENT_LOG.md) and
+  [dataset licenses](docs/DATA_LICENSES.md).
+- **Contributor guide and CI** - how to claim work, branch and commit style, and
+  the automated review that gates every PR
+  ([CONTRIBUTING.md](CONTRIBUTING.md), `.coderabbit.yaml`, CI).
 
 **Status:** V1 planning. No code in this repo yet.
 **Prior work (V0):** [Astra-chronus-ai](https://github.com/reyyishreyas/Astra-chronus-ai-)
@@ -15,6 +29,78 @@ trajectory predictor, FastAPI + React console). It stays as a reference. This
 repo is the V1 rebuild around a real camera feed.
 **Related:** [astra-uav](https://github.com/reyyishreyas/astra-uav) is the club's
 separate GPS-denied navigation track. Do not mix the two.
+
+---
+
+## Architecture Overview
+
+The full chain, from camera to gimbal lock. Interception exists only in
+simulation.
+
+```text
+Camera Frame
+    ↓
+Detection (fine-tuned YOLO-family, small-object cascade)
+    ↓  Detection (bbox, confidence, t_ns)
+Tracking (ByteTrack / OC-SORT + Kalman)
+    ↓
+State Estimation (pixels → azimuth/elevation + gimbal encoders → world frame)
+    ↓  TrackState (az, el, rates, bbox_scale, confidence)
+IMM-EKF Baseline ──→ Residual Predictor (GRU/TCN) ──→ Prediction
+  (constant velocity,               (delta_az, delta_el,
+   constant accel,                    sigma per horizon)
+   coordinated turn)
+    ↓
+Control (PID/MPC + measured-latency compensation)
+    ↓  GimbalCommand (latency-compensated setpoints)
+Pan-Tilt Gimbal Lock
+    ↘
+      Intercept path planning — SIMULATION ONLY (PX4/Gazebo or AirSim)
+```
+
+The stage-by-stage rationale is in [section 2](#2-pipeline-architecture); the
+frozen dataclasses each arrow carries are in
+[section 4](#4-interfaces-week-1-contract). The rule that shapes everything:
+**always build the classical baseline first** (Kalman/IMM) - a learned model only
+counts as a contribution if it beats a properly tuned one.
+
+---
+
+## Getting Started
+
+This repo is in **V1 planning**: the plan and interfaces are here, and code lands
+starting with the evaluation harness (see
+[section 15](#15-first-two-weeks)). Until then, getting started means getting
+oriented and picking up a task.
+
+**1. Clone and read the plan.**
+
+```bash
+git clone https://github.com/ASTRA-BMSIT/astra-chronus.git
+cd astra-chronus
+```
+
+Then skim this README (the contract) and
+[docs/RESEARCH_PLAN.md](docs/RESEARCH_PLAN.md) (the paper route).
+
+**2. Pick up work.** Read [CONTRIBUTING.md](CONTRIBUTING.md), then claim an issue
+or start from
+[Good first contributions](CONTRIBUTING.md#good-first-contributions) - verifying
+a dataset license or filling the experiment log needs no code.
+
+**3. Before you push, run the gates.** Once you've added code, every PR must pass
+ruff, bandit, and pytest; CI runs the same
+([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+
+```bash
+ruff check . && ruff format --check .
+bandit -r src -ll -q
+pytest tests/ -q
+```
+
+CI skips these on the docs-only tree today and activates them the moment `src/`
+and `tests/` exist. Python 3.10+; the full environment spec lands with the first
+code PR.
 
 ---
 
@@ -442,3 +528,19 @@ Core team and external contributors: see
 [CONTRIBUTING.md](CONTRIBUTING.md) for how work is claimed, the branch and
 commit conventions, code standards, and the contributions table that records
 who did what.
+
+---
+
+## Contact and community
+
+- **Astra defence-tech club, BMSIT** - this is a club research project. The
+  project lead is Reyyi Shreyas (president); the faculty guide is TBD pending
+  formal sign-off.
+- **Where to ask:** the Astra club team channel for members; open a GitHub
+  issue for anything that should be public or that external contributors can
+  help with.
+- **Before you start something unclear:** ask first. Questions cost minutes;
+  wrong assumptions cost weeks.
+- **Safety:** this project is simulation-only for interception and follows the
+  rules in [section 12](#12-legal-and-safety-non-negotiable). Contributions that
+  cross that boundary cannot be accepted, however good the code.
