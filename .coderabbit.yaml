@@ -110,7 +110,8 @@ reviews:
     - path: 'tests/**'
       instructions: |
         ## Testing
-        - New behaviour needs tests in the same PR (CONTRIBUTING section 3).
+        - New behavior needs tests in the same PR (see CONTRIBUTING,
+          "Code Quality Standards" and "How to Add a New Module" Step 4).
         - FLAG tests without assertions, and tests depending on wall-clock
           timing or network access.
 

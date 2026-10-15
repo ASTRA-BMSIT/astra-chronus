@@ -315,6 +315,7 @@ astra-chronus/
 ├── docs/
 │   ├── RESEARCH_PLAN.md       # paper and submission plan
 │   ├── RESEARCH_PLAN.pdf
+│   ├── EXPERIMENT_LOG.md      # every run: config, seed, results, hardware
 │   └── DATA_LICENSES.md       # one entry per dataset, confirmed licenses
 ├── configs/                   # one YAML per experiment, committed
 ├── src/astra_chronus/
