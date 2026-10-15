@@ -356,20 +356,25 @@ month 6. Late writing is how student papers end up thin.
 
 ## 11. Team structure
 
-Split into sub-teams. Owners are assigned in the first team meeting and
-filled in here.
+Split into sub-teams. The four core members below raise the project's PRs;
+assignments are **provisional until the first team meeting**. External
+contributors are welcome - see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Sub-team | Scope | Owner |
 |---|---|---|
-| Perception | Detection, small-object work, cascade | TBD |
-| Tracking and prediction | ByteTrack, IMM, GRU/Transformer, harness | TBD |
-| Control and hardware | Gimbal, latency, Jetson deployment | TBD |
-| Simulation and data | PX4/Gazebo, dataset ingestion, licenses | TBD |
-| Paper and documentation | Writing, experiment log, submissions | TBD (separate from project lead) |
+| Project lead | Interfaces between stages, evaluation honesty | Reyyi Shreyas |
+| Perception | Detection, small-object work, cascade | Mayank Prakash |
+| Tracking and prediction | ByteTrack, IMM, GRU/Transformer | Sonali N Gowda |
+| Simulation and data | PX4/Gazebo, dataset ingestion, licenses | Anubhav |
+| Control and hardware | Gimbal, latency, Jetson deployment | open - first meeting |
+| Paper and documentation | Writing, experiment log, submissions | open - first meeting (separate from project lead) |
 
 - **President / project lead:** Reyyi Shreyas - keeps interfaces between
   stages clean and the evaluation honest.
 - **Faculty guide:** Dr. Deepak DJ (formal sign-off pending).
+- Work claimed, credited, and reviewed per
+  [CONTRIBUTING.md](CONTRIBUTING.md): branch naming, commit style, the
+  contributions table, and the AI-disclosure rule for PRs.
 - **Authorship rules agreed in writing before month 2:** contribution
   thresholds, author order logic, and the faculty guide's role. This is the
   most common source of club conflict - settle it early.
@@ -427,3 +432,12 @@ filled in here.
 4. Latency budget numbers fixed.
 5. Then build the **evaluation harness** first - baselines and fixed splits.
    Everything else is measured against it.
+
+---
+
+## 16. Contributing
+
+Core team and external contributors: see
+[CONTRIBUTING.md](CONTRIBUTING.md) for how work is claimed, the branch and
+commit conventions, code standards, and the contributions table that records
+who did what.
