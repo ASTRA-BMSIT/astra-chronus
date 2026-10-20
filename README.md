@@ -16,8 +16,10 @@ a decision changes, update this file in the same pull request.
   `Prediction`, `GimbalCommand`) every sub-team codes against (section 4).
 - **Research plan** - literature, venues, authorship, and the iDEX/DRDO route
   ([docs/RESEARCH_PLAN.md](docs/RESEARCH_PLAN.md), plus its PDF).
-- **Honesty records** - the shared [experiment log](docs/EXPERIMENT_LOG.md) and
-  [dataset licenses](docs/DATA_LICENSES.md).
+- **Honesty records** - the shared [experiment log](docs/EXPERIMENT_LOG.md),
+  [dataset licenses](docs/DATA_LICENSES.md), and the
+  [V0 corrigendum](docs/V0_CORRIGENDUM.md) correcting the earlier research
+  report's "verified" claim with re-run measurements.
 - **Contributor guide and CI** - how to claim work, branch and commit style, and
   the automated review that gates every PR
   ([CONTRIBUTING.md](CONTRIBUTING.md), `.coderabbit.yaml`, CI).
