@@ -18,6 +18,7 @@ Usage
 
 Requires: numpy (torch is imported by the classifier module but unused here).
 """
+
 from __future__ import annotations
 
 import os
@@ -66,7 +67,9 @@ def run(root: Path) -> None:
     gen = RealisticDroneMotionGenerator(dt=DT)
     clf = BehaviourClassifier(use_rules=True)
     print(f"v0 repo: {root}")
-    print(f"{'simulated behaviour':<20}{'classifier output (share of ticks)':<52}{'peak speed'}")
+    print(
+        f"{'simulated behaviour':<20}{'classifier output (share of ticks)':<52}{'peak speed'}"
+    )
     for mode in MODES:
         counts: Counter[str] = Counter()
         peak_speed = 0.0
@@ -82,10 +85,12 @@ def run(root: Path) -> None:
                 float(np.linalg.norm(np.gradient(pos, DT, axis=0), axis=1).max()),
             )
             for start in range(0, len(feats) - SEQ + 1, 5):
-                counts[clf.classify(feats[start:start + SEQ])["label"]] += 1
+                counts[clf.classify(feats[start : start + SEQ])["label"]] += 1
 
         total = sum(counts.values())
-        parts = "  ".join(f"{k} {100 * v / total:.0f}%" for k, v in counts.most_common())
+        parts = "  ".join(
+            f"{k} {100 * v / total:.0f}%" for k, v in counts.most_common()
+        )
         print(f"{mode:<20}{parts:<52}{peak_speed:6.1f} m/s")
 
 

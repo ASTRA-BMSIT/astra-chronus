@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+
+# Environments
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+
+# data/ is never committed: datasets and generated splits are recreated from
+# a committed script and a seed (README section 9).
+data/*
+!data/README.md

@@ -24,7 +24,7 @@ a decision changes, update this file in the same pull request.
   the automated review that gates every PR
   ([CONTRIBUTING.md](CONTRIBUTING.md), `.coderabbit.yaml`, CI).
 
-**Status:** V1 planning. No code in this repo yet.
+**Status:** V1 planning. Folder scaffold in place (section 9); no implementation yet.
 **Prior work (V0):** [Astra-chronus-ai](https://github.com/reyyishreyas/Astra-chronus-ai-)
 is the earlier interception simulator (radar-telemetry simulation, 2-layer GRU
 trajectory predictor, FastAPI + React console). It stays as a reference. This
@@ -95,14 +95,14 @@ ruff, bandit, and pytest; CI runs the same
 ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
 
 ```bash
-ruff check . && ruff format --check .
+ruff check src tests scripts && ruff format --check src tests scripts
 bandit -r src -ll -q
 pytest tests/ -q
 ```
 
-CI skips these on the docs-only tree today and activates them the moment `src/`
-and `tests/` exist. Python 3.10+; the full environment spec lands with the first
-code PR.
+CI runs these on `src/`, `tests/` and `scripts/` since the folder scaffold
+landed; pytest stays skipped until the first `test_*.py` arrives in `tests/`.
+Python 3.10+; the full environment spec lands with the first code PR.
 
 ---
 
@@ -421,6 +421,10 @@ astra-chronus/
 
 Rules: training never lives in notebooks; every run is launched from a
 committed config; `data/` is never committed.
+
+The tree above is scaffolded as of 20 October 2026: every directory exists with
+a short README or package file, and `.gitignore` enforces the `data/` rule.
+Directories fill in as modules land.
 
 ---
 

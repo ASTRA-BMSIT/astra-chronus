@@ -19,6 +19,7 @@ Usage
 
 Requires: numpy, torch.
 """
+
 from __future__ import annotations
 
 import os
@@ -80,31 +81,38 @@ def run(root: Path) -> None:
             np.random.set_state(saved)
 
             window = features(pos)[:SEQ]
-            future = pos[SEQ: SEQ + HORIZON]
+            future = pos[SEQ : SEQ + HORIZON]
 
             gru = pred.predict(window, steps=HORIZON)
             p0, p1 = window[-2, :3], window[-1, :3]
             cv = np.array([p1 + (p1 - p0) * (k + 1) for k in range(HORIZON)])
 
-            g_err.append((
-                float(np.linalg.norm(gru - future, axis=1).mean()),
-                float(np.linalg.norm(gru - future, axis=1)[-1]),
-            ))
-            b_err.append((
-                float(np.linalg.norm(cv - future, axis=1).mean()),
-                float(np.linalg.norm(cv - future, axis=1)[-1]),
-            ))
+            g_err.append(
+                (
+                    float(np.linalg.norm(gru - future, axis=1).mean()),
+                    float(np.linalg.norm(gru - future, axis=1)[-1]),
+                )
+            )
+            b_err.append(
+                (
+                    float(np.linalg.norm(cv - future, axis=1).mean()),
+                    float(np.linalg.norm(cv - future, axis=1)[-1]),
+                )
+            )
         g, b = np.array(g_err), np.array(b_err)
         rows.append((g, b))
-        print(f"{mode:<16}{g[:, 0].mean():8.1f} /{g[:, 1].mean():8.1f}"
-              f"{b[:, 0].mean():11.1f} /{b[:, 1].mean():8.1f}")
+        print(
+            f"{mode:<16}{g[:, 0].mean():8.1f} /{g[:, 1].mean():8.1f}"
+            f"{b[:, 0].mean():11.1f} /{b[:, 1].mean():8.1f}"
+        )
 
     allg = np.vstack([r[0] for r in rows])
     allb = np.vstack([r[1] for r in rows])
-    print("\nOVERALL  GRU ADE %.1f  FDE %.1f | CV ADE %.1f  FDE %.1f"
-          % (allg[:, 0].mean(), allg[:, 1].mean(),
-             allb[:, 0].mean(), allb[:, 1].mean()))
-    print("ratio GRU/CV ADE: %.1fx" % (allg[:, 0].mean() / allb[:, 0].mean()))
+    print(
+        f"\nOVERALL  GRU ADE {allg[:, 0].mean():.1f}  FDE {allg[:, 1].mean():.1f}"
+        f" | CV ADE {allb[:, 0].mean():.1f}  FDE {allb[:, 1].mean():.1f}"
+    )
+    print(f"ratio GRU/CV ADE: {allg[:, 0].mean() / allb[:, 0].mean():.1f}x")
 
 
 if __name__ == "__main__":

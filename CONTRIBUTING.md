@@ -610,7 +610,7 @@ Every merged PR adds one row. Written by the PR author, reviewed like code.
 
 | Contributor | Work done | PR |
 |---|---|---|
-| Reyyi Shreyas | V1 architecture README, research plan and PDF, contributor guide, CI and review setup | direct pushes on `main` |
+| Reyyi Shreyas | V1 architecture README, research plan and PDF, contributor guide, CI and review setup, V0 corrigendum with re-run measurements, folder scaffold | direct pushes on `main` |
 | _Your row here_ | _What your merged PR did_ | _#N_ |
 
 External contributors: same table, same rules. A merged PR is a row; that is
