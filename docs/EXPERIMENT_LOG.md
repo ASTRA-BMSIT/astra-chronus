@@ -36,8 +36,8 @@ Template to copy, with every value still `TBD`:
 DATE: TBD
 CONFIG: TBD (seed TBD)
 SPLIT: TBD (TBD)
-RESULT: TBD
-HARDWARE: TBD | TBD
+RESULT: <stage metric> TBD | <baseline metric> TBD
+HARDWARE: <device> TBD | <latency metric> TBD
 NOTES: TBD
 ```
 
