@@ -14,6 +14,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 # Ensure src is on sys.path when running script standalone from repo root
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT / "src") not in sys.path:
@@ -22,49 +24,8 @@ if str(REPO_ROOT / "src") not in sys.path:
 from astra_chronus.evaluation.splits import TrajectorySplit, split_trajectories
 
 
-def parse_simple_yaml(text: str) -> dict[str, Any]:
-    """Parse basic key-value YAML without requiring external dependencies."""
-    result: dict[str, Any] = {}
-    for line in text.splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if ":" not in line:
-            continue
-        key, val = line.split(":", 1)
-        key = key.strip()
-        val = val.strip()
-
-        # Parse inline list e.g. [0.25, 0.5, 1.0, 2.0]
-        if val.startswith("[") and val.endswith("]"):
-            items = [item.strip() for item in val[1:-1].split(",") if item.strip()]
-            parsed_items: list[Any] = []
-            for item in items:
-                try:
-                    parsed_items.append(float(item))
-                except ValueError:
-                    parsed_items.append(item.strip("\"'"))
-            result[key] = parsed_items
-        elif (
-            val.startswith('"')
-            and val.endswith('"')
-            or val.startswith("'")
-            and val.endswith("'")
-        ):
-            result[key] = val[1:-1]
-        else:
-            try:
-                if "." in val:
-                    result[key] = float(val)
-                else:
-                    result[key] = int(val)
-            except ValueError:
-                result[key] = val
-    return result
-
-
 def load_config(config_path: Path) -> dict[str, Any]:
-    """Load configuration from YAML file.
+    """Load configuration from a YAML file.
 
     Parameters
     ----------
@@ -80,21 +41,18 @@ def load_config(config_path: Path) -> dict[str, Any]:
     ------
     FileNotFoundError
         If `config_path` does not exist.
+    TypeError
+        If `config_path` cannot be parsed as a YAML mapping.
     """
     if not config_path.is_file():
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
     content = config_path.read_text(encoding="utf-8")
-    try:
-        import yaml  # type: ignore[import-untyped]
+    loaded = yaml.safe_load(content)
+    if not isinstance(loaded, dict):
+        raise TypeError(f"Configuration must be a valid YAML mapping: {config_path}")
 
-        loaded = yaml.safe_load(content)
-        if isinstance(loaded, dict):
-            return loaded
-    except ImportError:
-        pass
-
-    return parse_simple_yaml(content)
+    return loaded
 
 
 def main() -> int:
@@ -125,14 +83,18 @@ def main() -> int:
 
     try:
         config = load_config(args.config)
-    except FileNotFoundError as err:
-        print(f"Error: {err}", file=sys.stderr)
+    except (FileNotFoundError, TypeError) as err:
+        print(f"Error loading configuration: {err}", file=sys.stderr)
         return 1
 
-    seed = int(config.get("seed", 20261101))
-    train_ratio = float(config.get("train_ratio", 0.70))
-    val_ratio = float(config.get("val_ratio", 0.15))
-    test_ratio = float(config.get("test_ratio", 0.15))
+    try:
+        seed = int(config["seed"])
+        train_ratio = float(config["train_ratio"])
+        val_ratio = float(config["val_ratio"])
+        test_ratio = float(config["test_ratio"])
+    except (KeyError, TypeError, ValueError) as err:
+        print(f"Invalid configuration parameters: {err!r}", file=sys.stderr)
+        return 1
 
     if args.trajectories:
         trajectory_ids = args.trajectories

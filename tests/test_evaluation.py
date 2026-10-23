@@ -29,6 +29,7 @@ T_NS = 1_730_000_000_033_000_000
 
 def make_test_track(
     track_id: int = 1,
+    t_ns: int = T_NS,
     az_deg: float = 90.0,
     el_deg: float = 10.0,
     az_rate_dps: float = -2.0,
@@ -38,7 +39,7 @@ def make_test_track(
     """Helper creating a valid TrackState for tests."""
     return TrackState(
         track_id=track_id,
-        t_ns=T_NS,
+        t_ns=t_ns,
         az_deg=az_deg,
         el_deg=el_deg,
         az_rate_dps=az_rate_dps,
@@ -314,7 +315,12 @@ def test_kalman_baseline_success() -> None:
     """Success path: KalmanPredictor filters history and yields Prediction."""
     predictor = KalmanPredictor()
     history = [
-        make_test_track(az_deg=90.0 + i * 0.1, az_rate_dps=3.0, el_rate_dps=-1.0)
+        make_test_track(
+            az_deg=90.0 + i * 0.1,
+            az_rate_dps=3.0,
+            el_rate_dps=-1.0,
+            t_ns=T_NS + i * 33_333_333,
+        )
         for i in range(5)
     ]
     pred = predictor.predict(history)
@@ -326,3 +332,37 @@ def test_kalman_baseline_success() -> None:
 
     with pytest.raises(ValueError, match="history sequence must not be empty"):
         predictor.predict([])
+
+
+def test_kalman_filters_noisy_measurements() -> None:
+    """Success path: Kalman filter smooths noisy velocity fluctuations."""
+    predictor = KalmanPredictor(process_noise=0.1, measurement_noise=1.0)
+    # A drone moving at true rate 2.0 dps, but with noisy measurements oscillating
+    # between 1.0 and 3.0, and the final measurement spiking to 5.0 dps
+    noisy_rates = [2.0, 1.0, 3.0, 1.0, 3.0, 5.0]
+    history = [
+        make_test_track(
+            az_deg=100.0 + i * 0.06,
+            az_rate_dps=noisy_rates[i],
+            el_rate_dps=0.0,
+            t_ns=T_NS + i * 33_333_333,
+        )
+        for i in range(len(noisy_rates))
+    ]
+    pred = predictor.predict(history)
+
+    # Filtered delta_az at 1.0s should be damped compared to raw spike of 5.0 * 1.0 = 5.0
+    h1_idx = pred.horizons_s.index(1.0)
+    filtered_delta_az = pred.delta_az_deg[h1_idx]
+    assert filtered_delta_az < 4.5, "Kalman filter should attenuate the spike"
+
+
+def test_kalman_uncertainty_monotonically_increases() -> None:
+    """Boundary case: Kalman forecast covariance grows monotonically with horizon."""
+    predictor = KalmanPredictor()
+    history = [make_test_track(t_ns=T_NS + i * 33_333_333) for i in range(4)]
+    pred = predictor.predict(history)
+    assert all(
+        later > earlier
+        for earlier, later in zip(pred.sigma_deg, pred.sigma_deg[1:], strict=False)
+    )

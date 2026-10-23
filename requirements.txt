@@ -1,0 +1,2 @@
+# Core dependencies for Astra Chronus
+pyyaml>=6.0

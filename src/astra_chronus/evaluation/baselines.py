@@ -7,6 +7,7 @@ Provides the reference baselines every learned predictor must beat:
 Outputs strictly adhere to `astra_chronus.interfaces.Prediction`.
 """
 
+import math
 from collections.abc import Sequence
 
 from astra_chronus.interfaces import Prediction, TrackState
@@ -119,18 +120,18 @@ class ConstantVelocityPredictor:
 class KalmanPredictor:
     """Linear constant-velocity Kalman filter predictor for angle tracking.
 
-    Estimates 4D state [az, el, az_rate, el_rate] and forecasts future
-    angular offsets. Serves as the classical benchmark against which residual
-    learning models are evaluated.
+    Estimates 2D decoupled [position, velocity] states for azimuth and
+    elevation across the trajectory history. Propagates state and error
+    covariances through F, H, Q, and R to yield calibrated posterior forecasts.
 
     Parameters
     ----------
     horizons_s : tuple[float, ...], default (0.25, 0.5, 1.0, 2.0)
         The horizon grid in seconds.
     process_noise : float, default 1.0
-        Process noise variance parameter.
+        Continuous process noise intensity (acceleration power spectral density).
     measurement_noise : float, default 0.1
-        Measurement noise variance parameter in degrees.
+        Measurement variance in degrees squared.
 
     Raises
     ------
@@ -153,12 +154,90 @@ class KalmanPredictor:
         self.q = process_noise
         self.r = measurement_noise
 
+    def _filter_1d(
+        self,
+        positions: list[float],
+        velocities: list[float],
+        timestamps_s: list[float],
+    ) -> tuple[float, float, tuple[float, float, float]]:
+        """Filter a 1D coordinate series [pos, vel] using a Kalman filter.
+
+        Returns
+        -------
+        tuple[float, float, tuple[float, float, float]]
+            Final filtered position, velocity, and covariance elements (P00, P01, P11).
+        """
+        # Initial state estimate
+        p = positions[0]
+        v = velocities[0]
+        # Initial covariance P
+        p00 = self.r
+        p01 = 0.0
+        p11 = self.q
+
+        r_vel = self.r * 2.0  # Velocity measurement variance
+
+        for k in range(1, len(positions)):
+            dt = timestamps_s[k] - timestamps_s[k - 1]
+            if dt <= 0.0:
+                dt = 1.0 / 30.0
+
+            # 1. State prediction: x_pred = F * x
+            p_pred = p + v * dt
+            v_pred = v
+
+            # 2. Covariance prediction: P_pred = F * P * F^T + Q
+            dt2 = dt * dt
+            dt3 = dt2 * dt
+            q00 = (dt3 / 3.0) * self.q
+            q01 = (dt2 / 2.0) * self.q
+            q11 = dt * self.q
+
+            pred_p00 = p00 + 2.0 * dt * p01 + dt2 * p11 + q00
+            pred_p01 = p01 + dt * p11 + q01
+            pred_p11 = p11 + q11
+
+            # 3. Measurement update: S = P_pred + R
+            s00 = pred_p00 + self.r
+            s01 = pred_p01
+            s10 = pred_p01
+            s11 = pred_p11 + r_vel
+
+            det_s = s00 * s11 - s01 * s10
+            det_s = max(1e-12, det_s)
+
+            inv_s00 = s11 / det_s
+            inv_s01 = -s01 / det_s
+            inv_s10 = -s10 / det_s
+            inv_s11 = s00 / det_s
+
+            # Kalman gain K = P_pred * S^-1
+            k00 = pred_p00 * inv_s00 + pred_p01 * inv_s10
+            k01 = pred_p00 * inv_s01 + pred_p01 * inv_s11
+            k10 = pred_p01 * inv_s00 + pred_p11 * inv_s10
+            k11 = pred_p01 * inv_s01 + pred_p11 * inv_s11
+
+            # Innovation y = z - x_pred
+            y_pos = positions[k] - p_pred
+            y_vel = velocities[k] - v_pred
+
+            # State update
+            p = p_pred + k00 * y_pos + k01 * y_vel
+            v = v_pred + k10 * y_pos + k11 * y_vel
+
+            # Covariance update P = (I - K) * P_pred
+            p00 = (1.0 - k00) * pred_p00 - k01 * pred_p01
+            p01 = (1.0 - k00) * pred_p01 - k01 * pred_p11
+            p11 = -k10 * pred_p01 + (1.0 - k11) * pred_p11
+
+        return p, v, (p00, p01, p11)
+
     def predict(
         self,
         history: Sequence[TrackState],
         horizons_s: Sequence[float] | None = None,
     ) -> Prediction:
-        """Filter the trajectory history and predict future offsets.
+        """Filter the trajectory history and predict future angular offsets.
 
         Parameters
         ----------
@@ -170,7 +249,8 @@ class KalmanPredictor:
         Returns
         -------
         Prediction
-            Predicted angular offsets and uncertainties.
+            Predicted angular offsets and uncertainties derived from the
+            posterior filter state.
 
         Raises
         ------
@@ -183,20 +263,38 @@ class KalmanPredictor:
         target_horizons = self.horizons_s if horizons_s is None else tuple(horizons_s)
         last_track = history[-1]
 
-        # Use the filtered/last rates from track state
-        az_rate = last_track.az_rate_dps
-        el_rate = last_track.el_rate_dps
+        timestamps = [s.t_ns * 1e-9 for s in history]
+        az_pos = [s.az_deg for s in history]
+        az_vel = [s.az_rate_dps for s in history]
+        el_pos = [s.el_deg for s in history]
+        el_vel = [s.el_rate_dps for s in history]
+
+        _, v_az, cov_az = self._filter_1d(az_pos, az_vel, timestamps)
+        _, v_el, cov_el = self._filter_1d(el_pos, el_vel, timestamps)
 
         delta_az: list[float] = []
         delta_el: list[float] = []
         sigma: list[float] = []
 
         for h in target_horizons:
-            delta_az.append(az_rate * h)
-            delta_el.append(el_rate * h)
-            # Kalman forecast variance grows as P_t + q * h
-            sigma_val = (self.r + self.q * h) ** 0.5
-            sigma.append(sigma_val)
+            delta_az.append(v_az * h)
+            delta_el.append(v_el * h)
+
+            # Propagate posterior variance h seconds into the future
+            var_az = (
+                cov_az[0]
+                + 2.0 * h * cov_az[1]
+                + (h**2) * cov_az[2]
+                + ((h**3) / 3.0) * self.q
+            )
+            var_el = (
+                cov_el[0]
+                + 2.0 * h * cov_el[1]
+                + (h**2) * cov_el[2]
+                + ((h**3) / 3.0) * self.q
+            )
+            total_sigma = math.sqrt(max(0.0, var_az) + max(0.0, var_el))
+            sigma.append(total_sigma)
 
         return Prediction(
             track_id=last_track.track_id,
