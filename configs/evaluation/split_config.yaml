@@ -1,0 +1,8 @@
+# Configuration for whole-trajectory dataset splits
+# Evaluated whole-trajectory partitions guarantee no trajectory leaks across splits.
+seed: 20261101
+train_ratio: 0.70
+val_ratio: 0.15
+test_ratio: 0.15
+horizons_s: [0.25, 0.5, 1.0, 2.0]
+output_file: "data/splits/default_split.json"
