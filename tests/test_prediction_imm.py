@@ -105,6 +105,8 @@ def test_load_committed_config(config):
     """The committed configuration has the required model and horizons."""
     assert config["model"] == "imm_ekf"
     assert isinstance(config["seed"], int)
+    assert isinstance(config["split"], str)
+    assert config["split"].strip()
     assert config["horizons_s"] == list(EXPECTED_HORIZONS)
     assert config["motion_models"] == EXPECTED_MODELS
 
@@ -131,6 +133,10 @@ def test_load_config_non_mapping_raises(tmp_path, yaml_text):
         ("model", "other"),
         ("seed", True),
         ("seed", 1.5),
+        ("split", ""),
+        ("split", "   "),
+        ("split", 7),
+        ("split", None),
         ("horizons_s", [0.25, 0.5, 1.0]),
         ("motion_models", ["constant_velocity"]),
     ],
@@ -142,6 +148,16 @@ def test_load_config_rejects_invalid_top_level_values(tmp_path, config, key, val
     path.write_text(yaml.safe_dump(config), encoding="utf-8")
 
     with pytest.raises((TypeError, ValueError)):
+        load_config(path)
+
+
+def test_load_config_requires_a_split_reference(tmp_path, config):
+    """A config without a split reference cannot be loaded."""
+    del config["split"]
+    path = tmp_path / "config.yaml"
+    path.write_text(yaml.safe_dump(config), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Missing configuration keys"):
         load_config(path)
 
 

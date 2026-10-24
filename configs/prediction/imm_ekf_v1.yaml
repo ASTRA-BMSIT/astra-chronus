@@ -5,6 +5,10 @@ model: imm_ekf
 # The filter itself is deterministic. The seed is recorded for the evaluation
 # harness, so every logged run names the seed it used.
 seed: 20261024
+# Evaluation split used by the harness for every logged run of this config.
+# TBD until the harness (#2 / #9) commits its splits; then replace this with
+# that split's path or identifier.
+split: TBD
 
 horizons_s: [0.25, 0.5, 1.0, 2.0]
 

@@ -52,7 +52,8 @@ def load_config(config_path: Path) -> dict[str, Any]:
         If the file or a required section is not a mapping, or the seed is
         not an integer.
     ValueError
-        If required configuration values are missing or invalid.
+        If required configuration values are missing or invalid, including a
+        missing or blank ``split`` reference.
     """
     if not config_path.is_file():
         raise FileNotFoundError(f"Configuration not found: {config_path}")
@@ -63,7 +64,7 @@ def load_config(config_path: Path) -> dict[str, Any]:
     if not isinstance(config, dict):
         raise TypeError("Configuration must be a YAML mapping.")
 
-    required_keys = {"model", "seed", "horizons_s", "motion_models"}
+    required_keys = {"model", "seed", "split", "horizons_s", "motion_models"}
     missing_keys = required_keys - config.keys()
     if missing_keys:
         raise ValueError(f"Missing configuration keys: {sorted(missing_keys)}")
@@ -73,6 +74,9 @@ def load_config(config_path: Path) -> dict[str, Any]:
 
     if not isinstance(config["seed"], int) or isinstance(config["seed"], bool):
         raise TypeError("seed must be an integer.")
+
+    if not isinstance(config["split"], str) or not config["split"].strip():
+        raise ValueError("split must be a non-empty split reference.")
 
     if config["horizons_s"] != CONTRACT_HORIZONS_S:
         raise ValueError("horizons_s must match the project contract.")
