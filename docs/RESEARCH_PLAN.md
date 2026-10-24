@@ -403,9 +403,12 @@ Latency-compensated gimbal and visual-servoing control for pan-tilt cameras:
 The four planned contributions are from README section 8.
 
 **1. Noise-aware training and evaluation protocol.** The sources read here
-feed learned models clean inputs. Becker et al. add only a small Gaussian
-noise (1.5 px, per the paper) to annotated centres, and the FRED paper states
-that its LSTM and Transformer use past ground-truth boxes. To be
+feed learned models clean inputs. Becker et al. add 1.5-px white Gaussian
+noise (per the paper's Kalman observation-noise assumption) to the synthetic
+generated trajectory positions used to train the RNN; the ANTI-UAV annotated
+centres are their evaluation ground truth, not the noisy training inputs. The
+FRED paper states that its LSTM and Transformer use past ground-truth boxes.
+To be
 publishable we would have to show that predictors trained on tracks produced
 by a real detector and tracker behave differently from the same predictors
 trained on ground truth, and report both.
