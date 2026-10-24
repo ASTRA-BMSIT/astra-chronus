@@ -242,3 +242,204 @@ it.
 - **Scope creep** - camera-only, single-target V1, written in the README.
 - **Late writing** - start month 2.
 - **License or IP surprises** - verify before use, settle IP early.
+
+---
+
+## 11. Related work
+
+Status: first draft for review (issue #5). Rules for this section:
+
+- Every entry names a real paper with a link, says what it did, and says what
+  it does not cover for us.
+- Numbers are copied from the cited source with its units and horizon. They
+  are not comparable with each other unless the units and horizons match, and
+  none is a measurement of ours.
+- If a claim could not be sourced, it says `TBD` instead of an assertion.
+- Entries were checked against the paper page or the DOI registry. Entries
+  marked "abstract only" were not read in full.
+
+### 11.1 Counter-UAS detection and tracking
+
+**Benchmarks.**
+
+- Jiang et al., [Anti-UAV: A Large Multi-Modal Benchmark for UAV
+  Tracking](https://arxiv.org/abs/2101.08466) (arXiv 2021). Introduces the
+  Anti-UAV dataset with "more than 300 video pairs" and "over 580k manually
+  annotated bounding boxes", plus a tracker called DFSC. Abstract only. It is
+  a tracking benchmark, so it reports no trajectory prediction.
+- Huang et al., [Anti-UAV410: A Thermal Infrared Benchmark and Customized
+  Scheme for Tracking Drones in the
+  Wild](https://doi.org/10.1109/TPAMI.2023.3335338) (IEEE TPAMI 46(5),
+  2024). Thermal infrared only, with 410 videos and over 438K annotated
+  boxes, and a tracker called SiamDT. Abstract only. Prediction is not
+  covered.
+- Xie et al., [CST Anti-UAV: A Thermal Infrared Benchmark for Tiny UAV
+  Tracking in Complex Scenes](https://arxiv.org/abs/2507.23473) (ICCV 2025
+  Workshops). 220 sequences, over 240k boxes, 20 trackers benchmarked. The
+  best reaches "35.92% state accuracy", which the authors cite as evidence
+  that tiny UAVs in complex scenes remain hard. Thermal infrared only.
+  Prediction is not covered.
+
+**Drone versus bird.** Coluccia et al., [Drone vs. Bird Detection: Deep
+Learning Algorithms and Results from a Grand
+Challenge](https://doi.org/10.3390/s21082824) (Sensors 2021). Compares three
+approaches from the 2020 challenge. Per the abstract, sequences from a
+moving camera and very distant drones are the most challenging, and the
+approaches are complementary on correct detection rate, false alarm rate and
+average precision. Abstract only. A later review covers the 2023 edition:
+Coluccia et al., [The Drone-vs-Bird Detection Grand Challenge at ICASSP 2023:
+A Review of Methods and Results](https://doi.org/10.1109/ojsp.2024.3379073)
+(IEEE OJSP 2024), not yet read. This line of work scores detection, not what
+the target does next.
+
+**Small objects.** Akyon et al., [Slicing Aided Hyper Inference and
+Fine-tuning for Small Object Detection](https://arxiv.org/abs/2202.06934)
+(ICIP 2022). Tiled inference (SAHI) raised AP by 6.8% (FCOS), 5.1% (VFNet)
+and 5.3% (TOOD) without fine-tuning, and by a cumulative 12.7%, 13.4% and
+14.5% with slicing-aided fine-tuning, on VisDrone and xView. These are aerial
+datasets, not counter-UAS footage, so the gain for our targets is `TBD` until
+we measure it. Drone-specific detectors beyond this are `TBD`, not yet
+surveyed.
+
+**Multi-object tracking.**
+
+- Zhang et al., [ByteTrack: Multi-Object Tracking by Associating Every
+  Detection Box](https://arxiv.org/abs/2110.06864) (arXiv 2021). Associates
+  low-score detections as well, and reports "80.3 MOTA, 77.3 IDF1 and 63.1
+  HOTA" on the MOT17 test set at 30 FPS on a single V100. MOT17 is
+  pedestrians, not drones.
+- Cao et al., [Observation-Centric SORT: Rethinking SORT for Robust
+  Multi-Object Tracking](https://arxiv.org/abs/2203.14360) (CVPR 2023).
+  Argues that Kalman-filter trackers assume linear motion and accumulate
+  error while a target is unobserved, and reports "700+ FPS on a single CPU".
+  Not evaluated on drones.
+
+Neither tracker predicts 0.5 to 2 s ahead. Both only associate detections,
+so the prediction horizon in section 1 is outside their scope.
+
+### 11.2 Trajectory prediction for aerial targets
+
+**Classical baselines.**
+
+- Blom and Bar-Shalom, [The interacting multiple model algorithm for systems
+  with Markovian switching coefficients](https://doi.org/10.1109/9.1299)
+  (IEEE Trans. Automatic Control 33(8), 780-783, 1988). The original IMM
+  reference for the primary baseline in section 4. Not read in full.
+- Li and Jilkov, [Survey of maneuvering target tracking. Part I: dynamic
+  models](https://doi.org/10.1109/TAES.2003.1261132) (IEEE Trans. Aerospace
+  and Electronic Systems 39(4), 1333-1364, 2003). Source for the choice of
+  motion models in the IMM-EKF. Not read in full.
+
+**Learned prediction against classical baselines.** Reported results differ
+by dataset, and most are in pixels.
+
+- Becker et al., [Generating Synthetic Training Data for Deep Learning-Based
+  UAV Trajectory Prediction](https://arxiv.org/abs/2107.00422) (ROBOVIS
+  2021). An RNN-MDN trained only on synthetic trajectories, evaluated on real
+  Anti-UAV sequences against a constant-velocity Kalman filter and linear
+  interpolation. The metric is final displacement error (FDE) in pixels at 8,
+  10 and 12 frames, with no seconds given because the Anti-UAV frame rate is
+  not stated. The paper notes that no camera motion compensation is applied
+  and that errors at longer horizons are high "due to the maneuvering
+  behavior of the UAVs". Its Table 1 has a second column per horizon that the
+  text does not define, so it is not quoted. The caption says 16 frames but
+  the headings say 12.
+
+  | FDE (px) | EO 8 frames | EO 10 | EO 12 | IR 8 | IR 10 | IR 12 |
+  |---|---|---|---|---|---|---|
+  | RNN-MDN | 60.304 | 82.780 | 121.453 | 20.849 | 41.378 | 61.459 |
+  | Kalman filter (CV) | 81.061 | 110.041 | 179.459 | 22.340 | 43.172 | 68.012 |
+  | Linear interpolation | 86.998 | 119.106 | 183.558 | 24.235 | 45.434 | 69.665 |
+
+  The baseline is constant-velocity, not an IMM.
+
+- Hari Prasanth S. M. et al., [Event-Only Drone Trajectory Forecasting with
+  RPM-Modulated Kalman Filtering](https://arxiv.org/abs/2603.01997) (arXiv
+  2026, preprint). On the FRED dataset, ADE and FDE in pixels at 0.4 s and
+  0.8 s. The authors report that all classical methods beat the deep models,
+  and that the LSTM and Transformer use only past ground-truth boxes as
+  input. Table I:
+
+  | Method | ADE 0.4 s | ADE 0.8 s | FDE 0.4 s | FDE 0.8 s |
+  |---|---|---|---|---|
+  | LSTM | 171.9 | 353.3 | 53.04 | 96.44 |
+  | Transformer | 124.8 | 292.2 | 46.74 | 87.68 |
+  | CNN + Transformer (RGB + event) | 121.3 | 281.5 | 45.23 | 85.78 |
+  | Linear extrapolation | 16.45 | 37.93 | 32.90 | 83.32 |
+  | Kalman filter | 16.40 | 37.08 | 32.80 | 81.54 |
+  | Kalman + RPM (event) | 15.35 | 34.85 | 31.16 | 77.76 |
+
+  Rows for the other two CNN + Transformer variants are omitted here. This
+  is a preprint and has not been peer reviewed.
+
+**Hybrids of IMM and learning.**
+
+- Zhu et al., [UAV Trajectory Tracking via RNN-enhanced IMM-KF with ADS-B
+  Data](https://arxiv.org/abs/2312.15721) (arXiv 2023). An RNN adapts the
+  noise matrices of an IMM-KF. Reports total RMSE "decreases by 28.56%"
+  against the traditional IMM-KF, "via comprehensive simulations". Abstract
+  only. Simulation, and it adjusts the filter instead of correcting its
+  output.
+- Zhang et al., [Deep Uncertainty-aware Tracking for Maneuvering
+  Targets](https://arxiv.org/abs/2410.14422) (IEEE Trans. Aerospace and
+  Electronic Systems, 2026). A data-driven network for maneuvering targets
+  that models measurement uncertainty. Abstract only, and it is a radar
+  setting with no numbers in the abstract.
+
+### 11.3 Camera-based tracking with latency compensation
+
+Li, Wang and Ramanan, [Towards Streaming
+Perception](https://arxiv.org/abs/2005.10420) (ECCV 2020). Argues that by the
+time an algorithm finishes a frame the world has changed, and proposes a
+"streaming accuracy" metric combining latency and accuracy. Finds that
+tracking and forecasting emerge as useful internal representations. It is
+evaluated on urban driving video, with no gimbal and no drone. Abstract only.
+
+Latency-compensated gimbal and visual-servoing control for pan-tilt cameras:
+`TBD`. No source has been checked yet.
+
+### 11.4 What our contribution would have to be
+
+The four planned contributions are from README section 8.
+
+**1. Noise-aware training and evaluation protocol.** The sources read here
+feed learned models clean inputs. Becker et al. add 1.5-px white Gaussian
+noise (per the paper's Kalman observation-noise assumption) to the synthetic
+generated trajectory positions used to train the RNN; the ANTI-UAV annotated
+centres are their evaluation ground truth, not the noisy training inputs. The
+FRED paper states that its LSTM and Transformer use past ground-truth boxes.
+To be
+publishable we would have to show that predictors trained on tracks produced
+by a real detector and tracker behave differently from the same predictors
+trained on ground truth, and report both.
+
+**2. Smooth and evasive split.** The tables above report one pooled number
+per method. Becker et al. note that errors grow with maneuvering, but no
+table separates smooth from evasive flight. To be publishable the split must
+be fixed and committed, with a stated rule for what counts as evasive, and
+every headline number must be reported on both subsets.
+
+**3. Residual predictor with uncertainty.** The FRED paper reports classical
+filters beating deep models on FRED, and Becker et al. compare only against a
+constant-velocity filter. Zhu et al. use an IMM-KF but adapt the filter
+instead of learning a residual, in simulation. To be publishable the residual
+model must beat a properly tuned IMM-EKF, not a constant-velocity filter, on
+the evasive subset, with the IMM tuned on the same data, and its uncertainty
+must be calibrated.
+
+**4. Latency study on edge hardware.** Li et al. supply the metric idea but
+not a gimbal result. To be publishable we would have to measure lock
+stability with and without prediction lead against end-to-end latency on the
+real edge hardware. Any prior study of this exact setup is `TBD`.
+
+### 11.5 The published numbers we have to beat
+
+The best published ADE and FDE at 1 s and 2 s for a camera-based drone
+trajectory predictor, in degrees: **`TBD`**. None of the sources checked
+reports that. Closest, with different units and horizons, from the FRED
+paper: the best entry is Kalman + RPM, with ADE 15.35 px and 34.85 px
+and FDE 31.16 px and 77.76 px at 0.4 s and 0.8 s. Those pixel values depend
+on the camera, so they cannot be converted to degrees or compared at 1 s and
+2 s without the camera intrinsics. Closing this gap is the main follow-up:
+the table needs a source that reports ADE and FDE in degrees, or a stated
+conversion from pixels with the dataset's intrinsics.

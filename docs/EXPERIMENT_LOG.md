@@ -30,6 +30,25 @@ HARDWARE: <device> | <latency metric> <value>
 NOTES: <failure cases, lost tracks, anything a reviewer will ask>
 ```
 
+Template to copy, with every value still `TBD`:
+
+```text
+DATE: TBD
+CONFIG: TBD (seed TBD)
+SPLIT: TBD (TBD)
+RESULT: <stage metric> TBD | <baseline metric> TBD
+HARDWARE: <device> TBD | <latency metric> TBD
+NOTES: TBD
+```
+
+## How to add a row
+
+- Add one block per run, in the same change as the run itself.
+- Name a committed config path and a seed, so the run can be repeated.
+- A number with no row here is changed to `TBD` in review.
+- Do not copy runs from the old project into this log. Those belong in
+  [V0_CORRIGENDUM.md](V0_CORRIGENDUM.md).
+
 ## Runs
 
 _No runs logged yet._
