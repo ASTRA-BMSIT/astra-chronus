@@ -1,0 +1,33 @@
+# IMM-EKF baseline configuration.
+# Required motion models and prediction horizons from the project contract.
+
+model: imm_ekf
+# The filter itself is deterministic. The seed is recorded for the evaluation
+# harness, so every logged run names the seed it used.
+seed: 20261024
+
+horizons_s: [0.25, 0.5, 1.0, 2.0]
+
+motion_models:
+  - constant_velocity
+  - constant_acceleration
+  - coordinated_turn
+
+initialization:
+  min_observations: 3
+  initial_position_std_deg: 1.0
+  initial_rate_std_dps: 5.0
+  initial_acceleration_std_dps2: 10.0
+  initial_turn_rate_std_dps: 5.0
+
+noise:
+  measurement_std_deg: 0.2
+  acceleration_std_dps2: 5.0
+  turn_rate_std_dps: 2.0
+
+imm:
+  initial_model_probabilities: [0.5, 0.3, 0.2]
+  transition_matrix:
+    - [0.90, 0.05, 0.05]
+    - [0.05, 0.90, 0.05]
+    - [0.05, 0.05, 0.90]
